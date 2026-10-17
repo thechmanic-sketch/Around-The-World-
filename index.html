@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Around The World | 360 Photo Booth Hire</title>
+<meta name="description" content="Hire a 360 photo booth for weddings, birthdays and corporate events. Slow-motion video, instant sharing, friendly attendant included.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="nav">
+  <a class="logo" href="#top">🌍 Around The World</a>
+  <nav>
+    <a href="#how">How it works</a>
+    <a href="#packages">Packages</a>
+    <a href="#gallery">Gallery</a>
+    <a href="#faq">FAQ</a>
+    <a class="btn small" href="#book">Get a quote</a>
+  </nav>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="hero-text">
+      <p class="eyebrow">360° Photo Booth Hire</p>
+      <h1>Give your guests a video they'll actually share.</h1>
+      <p>Step on the platform, strike a pose, and our camera spins around you, capturing slow-motion 360° videos in seconds. Perfect for weddings, parties and corporate events.</p>
+      <a class="btn" href="#book">Check your date</a>
+      <a class="btn ghost" href="#packages">See packages</a>
+    </div>
+    <div class="hero-art" aria-hidden="true"><div class="orbit"><span class="dot"></span></div><span class="globe">🌍</span></div>
+  </section>
+
+  <section id="how" class="section">
+    <h2>How it works</h2>
+    <div class="grid three">
+      <div class="card"><span class="num">1</span><h3>We set up</h3><p>We arrive early, set up in about 30 minutes and test everything. Needs just a 3m × 3m space and a power socket.</p></div>
+      <div class="card"><span class="num">2</span><h3>Guests step on</h3><p>Up to 4 guests at a time. Our attendant guides them through poses, props and slow-mo or fast-mo effects.</p></div>
+      <div class="card"><span class="num">3</span><h3>Share instantly</h3><p>Videos are ready in seconds. Guests share by QR code, text or email, with your branding and overlays.</p></div>
+    </div>
+  </section>
+
+  <section id="packages" class="section alt">
+    <h2>Packages</h2>
+    <p class="sub">Placeholder prices. Edit them to suit your business.</p>
+    <div class="grid three">
+      <div class="card price"><h3>Express</h3><p class="amount">£199</p><p>2 hours</p>
+        <ul><li>Attendant included</li><li>Instant sharing</li><li>Standard backdrop</li></ul><a class="btn" href="#book">Enquire</a></div>
+      <div class="card price featured"><span class="badge">Most popular</span><h3>Explorer</h3><p class="amount">£299</p><p>3 hours</p>
+        <ul><li>Everything in Express</li><li>Custom branded overlay</li><li>Props box</li><li>Online gallery</li></ul><a class="btn" href="#book">Enquire</a></div>
+      <div class="card price"><h3>Globetrotter</h3><p class="amount">£449</p><p>4 hours</p>
+        <ul><li>Everything in Explorer</li><li>Custom music &amp; effects</li><li>LED lighting upgrade</li><li>Setup &amp; delivery included</li></ul><a class="btn" href="#book">Enquire</a></div>
+    </div>
+  </section>
+
+  <section id="gallery" class="section">
+    <h2>Gallery</h2>
+    <p class="sub">Drop your best clips and photos into <code>assets/</code> and swap these tiles.</p>
+    <div class="grid four gallery">
+      <div class="tile">Wedding</div><div class="tile">Birthday</div><div class="tile">Corporate</div><div class="tile">Prom</div>
+    </div>
+  </section>
+
+  <section id="faq" class="section alt">
+    <h2>FAQ</h2>
+    <details><summary>How much space do you need?</summary><p>About 3m × 3m with a clear height of 2.5m, plus a nearby power socket.</p></details>
+    <details><summary>Do you deliver to my venue?</summary><p>Yes. Delivery and setup are included within your local area; a small fee may apply further out.</p></details>
+    <details><summary>Can you add our branding?</summary><p>Yes. Custom overlays, intros and outros are available on the Explorer and Globetrotter packages.</p></details>
+    <details><summary>How do I book?</summary><p>Send an enquiry below. Once your date is confirmed, a deposit secures the booking.</p></details>
+  </section>
+
+  <section id="book" class="section">
+    <h2>Get a quote</h2>
+    <form id="enquiry" class="form" action="mailto:hello@example.com" method="post" enctype="text/plain">
+      <label>Name<input name="name" required></label>
+      <label>Email<input type="email" name="email" required></label>
+      <label>Event date<input type="date" name="date" required></label>
+      <label>Event type
+        <select name="type"><option>Wedding</option><option>Birthday</option><option>Corporate</option><option>Other</option></select></label>
+      <label>Venue / location<input name="venue"></label>
+      <label>Package
+        <select name="package"><option>Express</option><option selected>Explorer</option><option>Globetrotter</option><option>Not sure</option></select></label>
+      <label class="full">Message<textarea name="message" rows="4"></textarea></label>
+      <button class="btn" type="submit">Send enquiry</button>
+    </form>
+  </section>
+</main>
+
+<footer>
+  <p>🌍 Around The World 360 Booth · hello@example.com · 01234 567890</p>
+  <p>© <span id="year"></span> Around The World</p>
+</footer>
+<script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+</body>
+</html>
