@@ -9,7 +9,7 @@
 </head>
 <body>
 <header class="nav">
-  <a class="logo" href="#top">🌍 Around The World</a>
+  <a class="logo" href="#top"><span class="mark"></span>Around The World</a>
   <nav>
     <a href="#how">How it works</a>
     <a href="#packages">Packages</a>
@@ -28,7 +28,14 @@
       <a class="btn" href="#book">Check your date</a>
       <a class="btn ghost" href="#packages">See packages</a>
     </div>
-    <div class="hero-art" aria-hidden="true"><div class="orbit"><span class="dot"></span></div><span class="globe">🌍</span></div>
+    <div class="hero-art" aria-hidden="true"><div class="orbit"><span class="dot"></span></div><div class="hero-img" style="background-image:url(assets/images/hero.jpg),var(--g-hero)"></div></div>
+  </section>
+
+  <section class="stats">
+    <div><strong>30 min</strong><span>setup time</span></div>
+    <div><strong>4 guests</strong><span>per spin</span></div>
+    <div><strong>Instant</strong><span>sharing</span></div>
+    <div><strong>Attendant</strong><span>included</span></div>
   </section>
 
   <section id="how" class="section">
@@ -55,10 +62,8 @@
 
   <section id="gallery" class="section">
     <h2>Gallery</h2>
-    <p class="sub">Drop your best clips and photos into <code>assets/</code> and swap these tiles.</p>
-    <div class="grid four gallery">
-      <div class="tile">Wedding</div><div class="tile">Birthday</div><div class="tile">Corporate</div><div class="tile">Prom</div>
-    </div>
+    <p class="sub">Real events, real spins.</p>
+    <div class="grid four gallery"><figure class="tile" style="background-image:url(assets/images/wedding.jpg),var(--g-wedding)"><figcaption>Wedding</figcaption></figure><figure class="tile" style="background-image:url(assets/images/birthday.jpg),var(--g-birthday)"><figcaption>Birthday</figcaption></figure><figure class="tile" style="background-image:url(assets/images/corporate.jpg),var(--g-corporate)"><figcaption>Corporate</figcaption></figure><figure class="tile" style="background-image:url(assets/images/prom.jpg),var(--g-prom)"><figcaption>Prom</figcaption></figure></div>
   </section>
 
   <section id="faq" class="section alt">
@@ -87,7 +92,7 @@
 </main>
 
 <footer>
-  <p>🌍 Around The World 360 Booth · hello@example.com · 01234 567890</p>
+  <p>Around The World 360 Booth · hello@example.com · 01234 567890</p>
   <p>© <span id="year"></span> Around The World</p>
 </footer>
 <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
