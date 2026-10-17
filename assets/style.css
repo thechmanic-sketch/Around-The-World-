@@ -84,3 +84,7 @@ footer a{color:var(--text)}
 @media (max-width:820px){.nav nav .btn.wa{display:none}}
 
 .mark{width:34px;height:34px;border-radius:0;background:none}
+
+.brand{display:flex;flex-direction:column;line-height:1.1}
+.brand small{font-size:.65rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent3)}
+.parent{color:var(--text);margin-bottom:.2rem}
