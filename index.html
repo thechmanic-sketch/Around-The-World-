@@ -8,6 +8,12 @@
 <link rel="icon" type="image/png" href="assets/favicon.png">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <meta name="theme-color" content="#066a6c">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TalentTrade">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<script src="assets/pwa.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
@@ -35,7 +41,9 @@
       <p>TalentTrade is a free video meeting app built for pitches and presentations. Start a call in your browser, share the link, and keep every speaker on time with a built-in presentation timer.</p>
       <a class="btn" href="meet.html#start">Start a meeting</a>
       <a class="btn ghost" href="#join">Join with a code</a>
+      <button class="btn ghost" type="button" data-install hidden>Install the app</button>
       <p class="hero-note">Free · Nothing to install · Works on computers and phones · <a href="signup.html">Create an account</a></p>
+      <p class="hero-note" data-install-ios hidden>On iPhone or iPad: tap <b>Share</b>, then <b>Add to Home Screen</b> to install TalentTrade as an app.</p>
     </div>
 
     <div class="mock" aria-hidden="true">
@@ -140,6 +148,7 @@
   <img class="foot-logo" src="assets/tt-logo.png" alt="TalentTrade" width="120" height="90">
   <p class="tagline">“Limited funds, big dreams, problem solved”</p>
   <p><a href="meet.html">Start or join a meeting</a> · <a href="https://wa.me/27633531662" target="_blank" rel="noopener">WhatsApp 063 353 1662</a></p>
+  <p><button class="link-btn" type="button" data-install hidden>Install TalentTrade as an app</button></p>
   <p class="parent">TalentTrade is a <strong>Techmanic</strong> brand.</p>
   <p>© <span id="year"></span> Techmanic. All rights reserved.</p>
 </footer>

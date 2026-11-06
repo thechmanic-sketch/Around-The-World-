@@ -21,8 +21,15 @@ jobs:
       - uses: actions/configure-pages@v5
         with:
           enablement: true
+      # Publish only the website: leave out the account server's code, old design files and repo settings.
+      - name: Collect website files
+        run: |
+          mkdir _site
+          rsync -a --exclude '.git' --exclude '.github' --exclude '.gitignore' \
+                   --exclude 'server' --exclude 'design' --exclude '_site' ./ _site/
+          ls -R _site | head -50
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4
