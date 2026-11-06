@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Log in | TalentTrade</title>
+<meta name="description" content="Log in to your TalentTrade account to start and host video meetings.">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="theme-color" content="#066a6c">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TalentTrade">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<script src="assets/pwa.js" defer></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="auth-page">
+  <aside class="auth-brand">
+    <div>
+      <a class="auth-logo" href="index.html"><img src="assets/tt-logo.png" alt="TalentTrade" width="85" height="64"></a>
+      <h2>Welcome back.</h2>
+      <p class="tagline">“Limited funds, big dreams, problem solved”</p>
+    </div>
+    <ul class="auth-points">
+      <li>Start meetings and share the link in one tap</li>
+      <li>Keep every pitch on time with the presentation timer</li>
+      <li>Your name is filled in for you every time</li>
+    </ul>
+  </aside>
+
+  <main class="auth-main">
+    <div class="auth-top"><a href="index.html">&larr; Home</a><a href="join.html">Join a meeting</a></div>
+    <div class="auth-card">
+      <div class="msg" id="msg" role="alert"></div>
+
+      <!-- log in -->
+      <section id="viewLogin">
+        <h1>Log in</h1>
+        <p class="sub">Log in to start and host meetings.</p>
+        <form class="auth-form" id="loginForm" novalidate>
+          <label>Email<input type="email" id="email" autocomplete="email" required placeholder="you@example.com"></label>
+          <label>Password
+            <span class="pw"><input type="password" id="password" autocomplete="current-password" required placeholder="Your password"><button type="button" class="show-pw" aria-label="Show password">Show</button></span>
+          </label>
+          <div class="auth-row"><span></span><button type="button" class="link-btn" id="toForgot">Forgot password?</button></div>
+          <button class="btn" type="submit" id="loginBtn">Log in</button>
+        </form>
+        <p class="auth-alt">New to TalentTrade? <a href="signup.html">Create an account</a></p>
+        <div class="or-line">or</div>
+        <p class="auth-alt" style="margin:0">Just joining someone's meeting? <a href="join.html">Join with a code</a><br><span class="hint">No account needed.</span></p>
+      </section>
+
+      <!-- forgot password -->
+      <section id="viewForgot" hidden>
+        <h1>Reset your password</h1>
+        <p class="sub">Enter your email and we'll send you a link to choose a new password.</p>
+        <form class="auth-form" id="forgotForm" novalidate>
+          <label>Email<input type="email" id="forgotEmail" autocomplete="email" required placeholder="you@example.com"></label>
+          <button class="btn" type="submit" id="forgotBtn">Send reset link</button>
+        </form>
+        <p class="auth-alt"><button type="button" class="link-btn" id="backToLogin">&larr; Back to log in</button></p>
+      </section>
+
+      <!-- set a new password (arrived from the reset email) -->
+      <section id="viewReset" hidden>
+        <h1>Choose a new password</h1>
+        <p class="sub">At least 8 characters. Use a mix of letters, numbers and symbols.</p>
+        <form class="auth-form" id="resetForm" novalidate>
+          <label>New password
+            <span class="pw"><input type="password" id="newPassword" autocomplete="new-password" required minlength="8"><button type="button" class="show-pw" aria-label="Show password">Show</button></span>
+          </label>
+          <button class="btn" type="submit" id="resetBtn">Save new password</button>
+        </form>
+      </section>
+
+      <!-- already logged in -->
+      <section id="viewSignedIn" hidden>
+        <div class="done-panel">
+          <div class="big"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+          <h1>You're logged in</h1>
+          <p class="sub" id="signedInAs"></p>
+          <a class="btn" href="meet.html#start">Start a meeting</a>
+          <p class="auth-alt"><button type="button" class="link-btn" id="logout">Log out</button></p>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script src="assets/auth.js"></script>
+<script src="assets/auth-ui.js"></script>
+<script>
+(function(){
+  var U=AuthUI,$=U.$;
+  var params=new URLSearchParams(location.search);
+  var next=U.safeNext(params.get('next'))||'meet.html#start';
+
+  function show(v){['viewLogin','viewForgot','viewReset','viewSignedIn'].forEach(function(id){$(id).hidden=id!==v});U.clear()}
+
+  $('toForgot').onclick=function(){$('forgotEmail').value=$('email').value;show('viewForgot');$('forgotEmail').focus()};
+  $('backToLogin').onclick=function(){show('viewLogin');$('email').focus()};
+
+  $('loginForm').addEventListener('submit',function(e){
+    e.preventDefault();
+    var email=$('email').value.trim(),pw=$('password').value;
+    if(!U.validEmail(email))return U.err('Please enter a valid email address.',$('email'));
+    if(!pw)return U.err('Please enter your password.',$('password'));
+    U.busy($('loginBtn'),'Logging in…');
+    TTAuth.signIn(email,pw).then(function(d){
+      U.rememberName(TTAuth.displayName(d.user));
+      location.href=next;
+    }).catch(function(er){U.done($('loginBtn'));U.fail(er)});
+  });
+
+  $('forgotForm').addEventListener('submit',function(e){
+    e.preventDefault();
+    var email=$('forgotEmail').value.trim();
+    if(!U.validEmail(email))return U.err('Please enter a valid email address.',$('forgotEmail'));
+    U.busy($('forgotBtn'),'Sending…');
+    TTAuth.sendReset(email).then(function(){
+      U.done($('forgotBtn'));
+      U.ok('If there’s an account for '+email+', a reset link is on its way. Check your inbox (and spam folder).');
+    }).catch(function(er){U.done($('forgotBtn'));U.fail(er)});
+  });
+
+  $('resetForm').addEventListener('submit',function(e){
+    e.preventDefault();
+    var pw=$('newPassword').value;
+    if(pw.length<8)return U.err('Please use at least 8 characters.',$('newPassword'));
+    U.busy($('resetBtn'),'Saving…');
+    TTAuth.resetPassword(resetToken,pw).then(function(){
+      U.done($('resetBtn'));show('viewLogin');
+      U.ok('Your password has been changed. You’re logged in.');
+      setTimeout(function(){location.href=next},1200);
+    }).catch(function(er){U.done($('resetBtn'));U.fail(er)});
+  });
+
+  $('logout').onclick=function(){TTAuth.signOut().then(function(){show('viewLogin');U.ok('You’ve been logged out.')})};
+
+  // Arrived from the reset-password email: login.html?reset=TOKEN
+  var resetToken=params.get('reset')||'';
+  if(resetToken){show('viewReset');history.replaceState(null,'',location.pathname)} // keep the token out of the address bar
+
+  U.notConfiguredNotice([$('loginBtn'),$('forgotBtn'),$('resetBtn')]).then(function(cfg){
+    if(!cfg)return;
+    if(params.get('badlink'))U.err('That confirmation link has expired or was already used. Try logging in, or sign up again.');
+    if(params.get('next'))U.info('Please log in to start a meeting. Guests can still join with a link.');
+    TTAuth.user().then(function(u){
+      if(u&&!resetToken){
+        $('signedInAs').textContent='as '+(TTAuth.displayName(u)||u.email)+' ('+u.email+')';show('viewSignedIn');
+        if(params.get('confirmed'))U.ok('Your email is confirmed and you\u2019re logged in.');
+      }else if(params.get('confirmed'))U.ok('Your email is confirmed. You can log in now.');
+    });
+  });
+  if($('viewLogin').hidden===false)$('email').focus();
+})();
+</script>
+</body>
+</html>

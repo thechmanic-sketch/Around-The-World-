@@ -1,0 +1,22 @@
+{
+  "name": "TalentTrade Meet",
+  "short_name": "TalentTrade",
+  "description": "Free video meetings for pitches and presentations, with a built-in presentation timer.",
+  "id": "./",
+  "start_url": "./?source=app",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#066a6c",
+  "categories": ["business", "productivity", "social"],
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Start a meeting", "url": "./meet.html#start", "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Join a meeting", "url": "./join.html", "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

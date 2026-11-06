@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Join a meeting | TalentTrade</title>
+<meta name="description" content="Join a TalentTrade video meeting with a meeting code or invite link. No account needed.">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="theme-color" content="#066a6c">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TalentTrade">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<script src="assets/pwa.js" defer></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="auth-page">
+  <aside class="auth-brand">
+    <div>
+      <a class="auth-logo" href="index.html"><img src="assets/tt-logo.png" alt="TalentTrade" width="85" height="64"></a>
+      <h2>Your seat is waiting.</h2>
+      <p class="tagline">“Limited funds, big dreams, problem solved”</p>
+    </div>
+    <ul class="auth-points">
+      <li>No account or download needed to join</li>
+      <li>Works on computers, tablets and phones</li>
+      <li>You can check your camera and microphone before going in</li>
+    </ul>
+  </aside>
+
+  <main class="auth-main">
+    <div class="auth-top"><a href="index.html">&larr; Home</a><span class="signed-in" id="who"><a href="login.html">Log in</a></span></div>
+    <div class="auth-card">
+      <div class="msg" id="msg" role="alert"></div>
+      <h1>Join a meeting</h1>
+      <p class="sub">Enter the meeting code or paste the invite link you were sent.</p>
+      <form class="auth-form" id="joinForm" novalidate>
+        <label>Meeting code or link<input id="code" required autocapitalize="off" spellcheck="false" placeholder="atw-abcd-efgh or the invite link"></label>
+        <label>Your name<input id="name" autocomplete="name" required maxlength="40" placeholder="So others know who you are"></label>
+        <button class="btn" type="submit" id="joinBtn">Join meeting</button>
+      </form>
+      <p class="hint" style="margin-top:.8rem">Next you'll see a preview where you can turn your camera and microphone on or off.</p>
+      <div class="or-line">or</div>
+      <a class="btn ghost" href="meet.html#start" style="width:100%;text-align:center;margin:0">Start a new meeting</a>
+      <p class="auth-alt">Hosting regularly? <a href="signup.html">Create a free account</a></p>
+    </div>
+  </main>
+</div>
+
+<script src="assets/auth.js"></script>
+<script src="assets/auth-ui.js"></script>
+<script>
+(function(){
+  var U=AuthUI,$=U.$;
+  function cleanCode(v){
+    v=(v||'').trim();
+    var m=v.match(/[?&]room=([^&#]+)/);if(m)v=decodeURIComponent(m[1]); // a pasted invite link
+    return v.toLowerCase().replace(/[^a-z0-9-]/g,'').slice(0,40);
+  }
+  var q=new URLSearchParams(location.search).get('room');
+  if(q)$('code').value=cleanCode(q);
+  $('name').value=U.savedName();
+  TTAuth.user().then(function(u){
+    if(!u)return;
+    var n=TTAuth.displayName(u);
+    if(!$('name').value)$('name').value=n;
+    $('who').innerHTML='';
+    var b=document.createElement('span');b.textContent='Logged in as ';var s=document.createElement('b');s.textContent=n;b.appendChild(s);
+    var out=document.createElement('button');out.type='button';out.className='link-btn';out.textContent='Log out';
+    out.onclick=function(){TTAuth.signOut().then(function(){location.reload()})};
+    $('who').appendChild(b);$('who').appendChild(out);
+  });
+  $('joinForm').addEventListener('submit',function(e){
+    e.preventDefault();
+    var code=cleanCode($('code').value),name=$('name').value.trim();
+    if(!code)return U.err('Please enter the meeting code or invite link.',$('code'));
+    if(code.length<4)return U.err('That code looks too short. Check the invite and try again.',$('code'));
+    if(!name)return U.err('Please enter your name so others know who you are.',$('name'));
+    U.rememberName(name);
+    location.href='meet.html?room='+encodeURIComponent(code);
+  });
+  ($('code').value?$('name'):$('code')).focus();
+})();
+</script>
+</body>
+</html>
