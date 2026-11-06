@@ -176,8 +176,8 @@
 <script>
 /* ---- Settings ----
    DOMAIN: the Jitsi server that carries the video. meet.jit.si is free but limits
-   embedded calls (see README notes in the commit). Swap for your own Jitsi server
-   or an 8x8 JaaS domain later without changing anything else. */
+   calls embedded in other sites. To use your own Jitsi server, put its address here
+   (for example 'meet.yourdomain.co.za'); nothing else needs to change. */
 var DOMAIN = 'meet.jit.si';
 var ROOM_PREFIX = 'TalentTrade-'; // keeps our rooms apart from other people's on the shared server
 
@@ -417,6 +417,9 @@ $('name').addEventListener('keydown',function(e){if(e.key==='Enter')(cleanCode($
   AdEngine.load('ads/ads.json').then(function(){stopLobbyAd=AdEngine.lobby($('lobbyAd'))});
 })();
 </script>
-<script src="https://meet.jit.si/external_api.js" async></script>
+<script>
+/* Load the video library from whichever server DOMAIN points at. */
+(function(){var s=document.createElement('script');s.src='https://'+DOMAIN+'/external_api.js';s.async=true;document.body.appendChild(s)})();
+</script>
 </body>
 </html>
