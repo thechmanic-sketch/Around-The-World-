@@ -4,6 +4,7 @@
  *   settings.preroll  - full-screen ad before someone joins a meeting (skippable)
  *   settings.lobby    - muted, looping sponsor slot on the join screen
  *   settings.incall   - small muted corner ad during a call, on a timer
+ *   settings.break    - full-screen ad break during a call, shown to everyone at once
  *   ads[]             - each sponsor video, where it may run, when, and how often
  *
  * Usage:
@@ -11,6 +12,7 @@
  *   AdEngine.preroll()            -> Promise, resolves when the ad ends / is skipped
  *   AdEngine.lobby(slotEl)        -> stop()
  *   AdEngine.incall(hostEl)       -> stop()
+ *   AdEngine.adBreak(adId?)       -> Promise, resolves when the break ends
  *   AdEngine.on(fn)               -> fn({type, adId, sponsor, placement, time})
  */
 (function (global) {
@@ -21,7 +23,8 @@
     trackUrl: '',
     preroll: { enabled: true, skipAfterSeconds: 5, maxPerSession: 1 },
     lobby: { enabled: true, rotateSeconds: 30 },
-    incall: { enabled: true, firstAfterMinutes: 5, everyMinutes: 15, maxPerCall: 3, maxSecondsOnScreen: 30 }
+    incall: { enabled: true, firstAfterMinutes: 5, everyMinutes: 15, maxPerCall: 3, maxSecondsOnScreen: 30 },
+    'break': { enabled: true, firstAfterMinutes: 10, everyMinutes: 20, maxPerCall: 3, maxSeconds: 30, allowSkip: false, skipAfterSeconds: 5, waitForTimer: true }
   };
   var DAY_NAMES = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
@@ -156,22 +159,20 @@
     return l;
   }
 
-  /* ---------- placement: pre-roll ---------- */
-  function preroll() {
-    var cfg = config.settings.preroll;
-    if (session('preroll-count') >= (cfg.maxPerSession || Infinity)) return Promise.resolve(null);
-    var ad = pick('preroll');
-    if (!ad) return Promise.resolve(null);
-
+  /* ---------- full-screen player (used by the pre-roll and by ad breaks) ---------- */
+  // o: { placement, note, skipAfter (seconds, or null for no skip button), maxSeconds, onStart }
+  var breakActive = false;
+  function fullscreen(ad, o) {
     return new Promise(function (resolve) {
       var done = false;
-      var overlay = el('div', 'ad-preroll');
+      var overlay = el('div', 'ad-preroll' + (o.placement === 'break' ? ' ad-break' : ''));
       overlay.setAttribute('role', 'dialog');
-      overlay.setAttribute('aria-label', 'Sponsored message');
+      overlay.setAttribute('aria-label', o.placement === 'break' ? 'Ad break' : 'Sponsored message');
       var box = el('div', 'ad-preroll-box');
       var head = el('div', 'ad-preroll-head');
       head.appendChild(label(ad));
-      head.appendChild(el('span', 'ad-note', 'Your meeting starts after this short message'));
+      var note = el('span', 'ad-note', o.note);
+      head.appendChild(note);
       var frame = el('div', 'ad-frame');
       var v = makeVideo(ad, { muted: false });
       frame.appendChild(v);
@@ -181,26 +182,38 @@
       sound.onclick = function () { v.muted = false; sound.hidden = true; };
       frame.appendChild(sound);
       var bar = el('div', 'ad-bar');
-      var cta = makeCta(ad, 'preroll');
+      var back = el('span', 'ad-back');
+      bar.appendChild(back);
+      var cta = makeCta(ad, o.placement);
       if (cta) bar.appendChild(cta);
       var skip = el('button', 'ad-skip');
       skip.type = 'button';
+      if (o.skipAfter == null) skip.hidden = true;
       bar.appendChild(skip);
       box.appendChild(head); box.appendChild(frame); box.appendChild(bar);
       overlay.appendChild(box);
       document.body.appendChild(overlay);
 
-      var wait = Math.max(0, Number(cfg.skipAfterSeconds) || 0), started = false, tick;
+      var wait = o.skipAfter == null ? 0 : Math.max(0, Number(o.skipAfter) || 0), started = false, tick, cap;
+      var maxS = Number(o.maxSeconds) || 0;
       function setSkip() {
         if (wait > 0) { skip.disabled = true; skip.textContent = 'Skip in ' + wait; }
         else { skip.disabled = false; skip.textContent = 'Skip ad ›'; }
       }
+      function setBack() {
+        if (o.placement !== 'break') return;
+        var total = v.duration && isFinite(v.duration) ? v.duration : maxS;
+        if (maxS) total = Math.min(total || maxS, maxS);
+        var left = Math.max(0, Math.ceil((total || 0) - (v.currentTime || 0)));
+        back.textContent = total ? 'Back to the meeting in 0:' + String(left).padStart(2, '0') : '';
+      }
       setSkip();
+      setBack();
       function finish(type) {
         if (done) return;
         done = true;
-        clearInterval(tick); clearTimeout(stall);
-        if (type) track(type, ad, 'preroll', { watchedSeconds: Math.round(v.currentTime || 0) });
+        clearInterval(tick); clearTimeout(stall); clearTimeout(cap);
+        if (type) track(type, ad, o.placement, { watchedSeconds: Math.round(v.currentTime || 0) });
         v.pause(); overlay.remove();
         resolve(ad);
       }
@@ -208,13 +221,15 @@
       v.addEventListener('playing', function () {
         if (started) return;
         started = true;
-        session('preroll-count', session('preroll-count') + 1);
-        track('impression', ad, 'preroll');
-        tick = setInterval(function () { if (wait > 0) { wait--; setSkip(); } }, 1000);
+        if (o.onStart) o.onStart();
+        track('impression', ad, o.placement);
+        setBack();
+        tick = setInterval(function () { if (wait > 0) { wait--; setSkip(); } setBack(); }, 1000);
+        if (maxS > 0) cap = setTimeout(function () { finish('complete'); }, maxS * 1000);
       });
       v.addEventListener('ended', function () { finish('complete'); });
       v.addEventListener('error', function () { finish('error'); });
-      // If the video can't start within 8s (slow network, blocked file), don't hold the meeting hostage.
+      // If the video can't start within 8s (slow network, blocked file), don't hold anyone hostage.
       var stall = setTimeout(function () { if (!started) finish('error'); }, 8000);
 
       var p = v.play();
@@ -223,6 +238,39 @@
         v.play().catch(function () { finish('error'); });
       });
     });
+  }
+
+  /* ---------- placement: pre-roll ---------- */
+  function preroll() {
+    var cfg = config.settings.preroll;
+    if (session('preroll-count') >= (cfg.maxPerSession || Infinity)) return Promise.resolve(null);
+    var ad = pick('preroll');
+    if (!ad) return Promise.resolve(null);
+    return fullscreen(ad, {
+      placement: 'preroll',
+      note: 'Your meeting starts after this short message',
+      skipAfter: cfg.skipAfterSeconds,
+      onStart: function () { session('preroll-count', session('preroll-count') + 1); }
+    });
+  }
+
+  /* ---------- placement: ad break (full screen, during a call, everyone at once) ---------- */
+  // adId: show this exact ad if it's allowed to run now (so everyone in the call sees the same sponsor).
+  function adBreak(adId) {
+    var cfg = config.settings['break'];
+    if (breakActive || !config.settings.enabled || !cfg.enabled) return Promise.resolve(null);
+    var ad = null;
+    if (adId) ad = config.ads.filter(function (a) { return a.id === adId && eligible(Object.assign({}, a, { maxViewsPerSession: 0 }), 'break'); })[0] || null;
+    if (!ad) ad = pick('break');
+    if (!ad) return Promise.resolve(null);
+    breakActive = true;
+    hideCorner();
+    return fullscreen(ad, {
+      placement: 'break',
+      note: 'Ad break · the meeting carries on straight after',
+      skipAfter: cfg.allowSkip ? cfg.skipAfterSeconds : null,
+      maxSeconds: cfg.maxSeconds
+    }).then(function (r) { breakActive = false; return r; });
   }
 
   /* ---------- placement: lobby slot ---------- */
@@ -263,6 +311,7 @@
   }
 
   /* ---------- placement: in-call corner ---------- */
+  var hideCorner = function () {};
   function incall(host) {
     var cfg = config.settings.incall, shown = 0, timers = [], card = null;
     if (!config.settings.enabled || !cfg.enabled) return function () {};
@@ -273,8 +322,9 @@
       if (v) v.pause();
       card.remove(); card = null;
     }
+    hideCorner = function () { if (card) { var v = card.querySelector('video'); if (v) v.pause(); card.remove(); card = null; } };
     function show() {
-      if (card || shown >= (cfg.maxPerCall || Infinity)) return;
+      if (breakActive || card || shown >= (cfg.maxPerCall || Infinity)) return;
       var ad = pick('incall');
       if (!ad) return;
       shown++;
@@ -331,6 +381,8 @@
       '.ad-note{color:rgba(255,255,255,.7);font-size:.85rem}' +
       '.ad-preroll .ad-sponsor{color:#fff}' +
       '.ad-bar{display:flex;justify-content:flex-end;align-items:center;gap:.7rem;margin-top:.8rem}' +
+      '.ad-break{background:rgba(0,0,30,.97)}' +
+      '.ad-back{margin-right:auto;color:rgba(255,255,255,.75);font-size:.9rem;font-variant-numeric:tabular-nums}' +
       '.ad-skip{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:.55rem 1.1rem;font:inherit;font-weight:700;cursor:pointer;min-width:120px}' +
       '.ad-skip:disabled{opacity:.6;cursor:default}' +
       '.ad-sound{position:absolute;left:12px;bottom:12px;background:rgba(0,0,0,.7);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:.4rem .8rem;font:inherit;font-size:.8rem;cursor:pointer}' +
@@ -362,6 +414,8 @@
     preroll: preroll,
     lobby: lobby,
     incall: incall,
+    adBreak: adBreak,
+    get inBreak() { return breakActive; },
     on: function (fn) { listeners.push(fn); }
   };
 })(window);

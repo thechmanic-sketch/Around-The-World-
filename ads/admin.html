@@ -78,13 +78,13 @@
 <script>
 var $=function(id){return document.getElementById(id)};
 var DAYS=['mon','tue','wed','thu','fri','sat','sun'];
-var PLACEMENTS=[['preroll','Before joining (full screen)'],['lobby','Join screen slot'],['incall','During call (corner)']];
+var PLACEMENTS=[['preroll','Before joining (full screen)'],['lobby','Join screen slot'],['incall','During call (corner)'],['break','Ad break (full screen, during call)']];
 var data=null,original=null;
 function store(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){return null}}
 function flash(t){$('msg').textContent=t;clearTimeout(flash.h);flash.h=setTimeout(function(){$('msg').textContent=''},3000)}
 function save(){store('atw-ads-draft',JSON.stringify(data));render.status()}
 function src(p){p=String(p||'');return !p||/^(https?:)?\/\//i.test(p)||p[0]==='/'?p:'../'+p} // paths in ads.json are relative to the site root
-function newAd(){return {id:'ad-'+Date.now().toString(36),sponsor:'',title:'',video:'ads/videos/',poster:'',clickUrl:'',cta:'Learn more',placements:['preroll','lobby','incall'],weight:1,active:true,startDate:'',endDate:'',days:[],hours:[],maxViewsPerSession:0}}
+function newAd(){return {id:'ad-'+Date.now().toString(36),sponsor:'',title:'',video:'ads/videos/',poster:'',clickUrl:'',cta:'Learn more',placements:['preroll','lobby','incall','break'],weight:1,active:true,startDate:'',endDate:'',days:[],hours:[],maxViewsPerSession:0}}
 
 function field(label,value,onchange,opts){
   opts=opts||{};
@@ -115,7 +115,7 @@ function statusOf(ad){
   var t=new Date(),d=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
   if(ad.endDate&&d>ad.endDate)return ['Ended '+ad.endDate,''];
   if(ad.startDate&&d<ad.startDate)return ['Starts '+ad.startDate,'warn'];
-  AdEngine.use({settings:{preroll:{enabled:true},lobby:{enabled:true},incall:{enabled:true}},ads:[]});
+  AdEngine.use({settings:{preroll:{enabled:true},lobby:{enabled:true},incall:{enabled:true},'break':{enabled:true}},ads:[]});
   var now=ad.placements.some(function(p){return AdEngine.eligible(Object.assign({},ad,{maxViewsPerSession:0}),p)});
   return now?['Running now','live']:['Scheduled (outside its days/hours right now)','warn'];
 }
@@ -139,6 +139,15 @@ var render={
     c.appendChild(field('Then every (minutes)',s.incall.everyMinutes,function(v){s.incall.everyMinutes=v},{type:'number',min:0,step:'any'}));
     c.appendChild(field('Max ads per call',s.incall.maxPerCall,function(v){s.incall.maxPerCall=v},{type:'number',min:0}));
     c.appendChild(field('Hide after (seconds on screen)',s.incall.maxSecondsOnScreen,function(v){s.incall.maxSecondsOnScreen=v},{type:'number',min:0}));
+    var b=group('Ad break (full screen for everyone in the call)',box),br=s['break'];
+    b.appendChild(check('On',br.enabled,function(v){br.enabled=v}));
+    b.appendChild(field('First break after (minutes, 0 = only when the host presses Ad break)',br.firstAfterMinutes,function(v){br.firstAfterMinutes=v},{type:'number',min:0,step:'any'}));
+    b.appendChild(field('Then every (minutes)',br.everyMinutes,function(v){br.everyMinutes=v},{type:'number',min:0,step:'any'}));
+    b.appendChild(field('Max automatic breaks per call',br.maxPerCall,function(v){br.maxPerCall=v},{type:'number',min:0}));
+    b.appendChild(field('Longest a break can last (seconds)',br.maxSeconds,function(v){br.maxSeconds=v},{type:'number',min:0}));
+    b.appendChild(check("Wait until no one's presentation timer is running",br.waitForTimer!==false,function(v){br.waitForTimer=v}));
+    b.appendChild(check('Let viewers skip',!!br.allowSkip,function(v){br.allowSkip=v}));
+    b.appendChild(field('Skip button appears after (seconds)',br.skipAfterSeconds,function(v){br.skipAfterSeconds=v},{type:'number',min:0}));
   },
   ads:function(){
     var list=$('ads');list.innerHTML='';
@@ -197,7 +206,7 @@ function previewPreroll(ad){
 function load(d){
   d=d||{};
   data={settings:Object.assign({enabled:true,trackUrl:''},d.settings||{}),ads:d.ads||[]};
-  ['preroll','lobby','incall'].forEach(function(k){data.settings[k]=Object.assign({enabled:true},data.settings[k]||{})});
+  ['preroll','lobby','incall','break'].forEach(function(k){data.settings[k]=Object.assign({enabled:true},data.settings[k]||{})});
   render.settings();render.ads();
 }
 function json(){return JSON.stringify(data,null,2)+'\n'}
