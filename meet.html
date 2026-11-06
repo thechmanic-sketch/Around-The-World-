@@ -6,6 +6,9 @@
 <title>Around The World Meet | Video Calls</title>
 <meta name="description" content="Free video meetings by Around The World. Start a call, share the link, and talk face to face.">
 <link rel="icon" type="image/svg+xml" href="assets/logo-mark.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600&display=swap">
 <link rel="stylesheet" href="assets/style.css">
 <style>
   /* ---------- Lobby ---------- */
@@ -13,7 +16,7 @@
   .preview{position:relative;aspect-ratio:16/10;border-radius:var(--radius);overflow:hidden;background:var(--bg2);border:1px solid var(--border)}
   .preview video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
   .preview .off{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.6rem;color:var(--muted);text-align:center;padding:1rem}
-  .preview .avatar{width:84px;height:84px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;color:#fff}
+  .preview .avatar{width:84px;height:84px;border-radius:50%;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;color:#fff}
   .preview .toggles{position:absolute;left:0;right:0;bottom:14px;display:flex;justify-content:center;gap:.7rem}
   .round{width:48px;height:48px;border-radius:50%;border:1px solid var(--border);background:rgba(13,13,24,.75);color:var(--text);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(8px)}
   .round.off-state{background:#e5484d;border-color:#e5484d}
@@ -50,7 +53,7 @@
   .tool:hover{background:var(--glass)}
   .tool.active{color:var(--accent3)}
   .tool.muted svg{color:#ff6b70}
-  .tool .count{position:absolute;top:2px;right:12px;background:var(--accent);color:#fff;border-radius:999px;font-size:.65rem;padding:0 .4rem;line-height:1.4}
+  .tool .count{position:absolute;top:2px;right:12px;background:var(--accent);color:var(--on-accent);font-weight:700;border-radius:999px;font-size:.65rem;padding:0 .4rem;line-height:1.4}
   .tool.leave{background:#e5484d;color:#fff;margin-left:.75rem;min-width:84px}
   .tool.leave:hover{background:#c93a3f}
   .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:.6rem 1rem;border-radius:999px;font-size:.9rem;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60}
@@ -60,8 +63,8 @@
   .ptimer .pt-label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
   .ptimer .pt-time{font-size:2.6rem;font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
   .ptimer .pt-track{height:5px;border-radius:5px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:.35rem}
-  .ptimer .pt-bar{height:100%;background:var(--accent3);transform-origin:left;transition:transform .25s linear}
-  .ptimer.warn{border-color:#ffb020}.ptimer.warn .pt-time{color:#ffc24d}.ptimer.warn .pt-bar{background:#ffb020}
+  .ptimer .pt-bar{height:100%;background:#3fb28a;transform-origin:left;transition:transform .25s linear}
+  .ptimer.warn{border-color:#f59e0b}.ptimer.warn .pt-time{color:#fbbf24}.ptimer.warn .pt-bar{background:#f59e0b}
   .ptimer.danger,.ptimer.over{border-color:#e5484d}.ptimer.danger .pt-time,.ptimer.over .pt-time{color:#ff6b70}.ptimer.danger .pt-bar{background:#e5484d}
   .ptimer.over{background:rgba(70,10,16,.92);animation:ptpulse 1s ease-in-out infinite}
   .ptimer.over .pt-label{color:#ffb3b5;font-weight:800}
@@ -75,7 +78,7 @@
   .pt-presets button{display:flex;flex-direction:column;align-items:center;padding:.6rem 0;border-radius:12px;border:1px solid var(--border);background:var(--glass);color:var(--text);font:inherit;font-size:1.3rem;font-weight:800;cursor:pointer;line-height:1.1}
   .pt-presets button small{font-size:.68rem;font-weight:500;color:var(--muted)}
   .pt-presets button:hover{border-color:var(--accent)}
-  .pt-presets button.sel{background:var(--accent);border-color:var(--accent)}.pt-presets button.sel small{color:#fff}
+  .pt-presets button.sel{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}.pt-presets button.sel small{color:var(--on-accent)}
   .pt-controls{display:flex;gap:.5rem;margin-top:.8rem}
   .pt-controls[hidden]{display:none}
   .pt-controls button{flex:1;padding:.55rem;border-radius:999px;border:1px solid var(--border);background:var(--glass);color:var(--text);font:inherit;font-weight:700;cursor:pointer}

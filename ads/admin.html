@@ -6,6 +6,9 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Sponsor Ads Manager</title>
 <link rel="icon" type="image/svg+xml" href="../assets/logo-mark.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600&display=swap">
 <link rel="stylesheet" href="../assets/style.css">
 <style>
   .wrap{max-width:1100px;margin:0 auto;padding:2rem 16px 6rem}
@@ -22,6 +25,7 @@
   label.f{display:flex;flex-direction:column;gap:.3rem;font-size:.82rem;color:var(--muted)}
   label.f input,label.f select{padding:.6rem .75rem;border-radius:10px;border:1px solid var(--border);background:var(--glass);color:var(--text);font:inherit;font-size:.95rem;width:100%}
   label.f input[type=checkbox]{width:auto}
+  input[type=checkbox]{accent-color:var(--accent)}
   .check{display:inline-flex;align-items:center;gap:.4rem;font-size:.88rem;margin-right:.9rem;cursor:pointer}
   .group{border-top:1px solid var(--border);margin-top:1rem;padding-top:1rem}
   .group h3{font-size:.95rem;margin:0 0 .7rem}
@@ -30,7 +34,7 @@
   .ad video{width:100%;aspect-ratio:16/9;background:#000;border-radius:12px}
   .status{display:inline-block;font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;background:var(--glass);border:1px solid var(--border)}
   .status.live{color:#05250f;background:#2ee6a0;border-color:#2ee6a0}
-  .status.warn{color:#1a1400;background:#ffd34d;border-color:#ffd34d}
+  .status.warn{color:var(--on-accent);background:var(--accent2);border-color:var(--accent2)}
   .row-btns{display:flex;flex-wrap:wrap;gap:.4rem}
   .mini{background:var(--glass);border:1px solid var(--border);color:var(--text);border-radius:999px;padding:.35rem .8rem;font:inherit;font-size:.8rem;cursor:pointer}
   .mini.danger{color:#ff8a8f}
