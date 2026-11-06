@@ -101,7 +101,7 @@
 <body>
 <header class="nav">
   <a class="logo" href="index.html"><img class="mark" src="assets/tt-mark.png" alt="" width="40" height="36"><span class="brand"><img class="wordmark" src="assets/tt-wordmark.png" alt="TalentTrade" width="139" height="19"><small>Meet</small></span></a>
-  <nav><a href="index.html">Back to site</a></nav>
+  <nav><a href="index.html">Home</a></nav>
 </header>
 
 <main class="lobby" id="lobby">
@@ -155,7 +155,7 @@
 
 <footer>
   <p class="tagline">“Limited funds, big dreams, problem solved”</p>
-  <p>TalentTrade Meet · a <strong>Techmanic</strong> brand · <a href="index.html">360 photo booth hire</a></p>
+  <p>TalentTrade Meet · a <strong>Techmanic</strong> brand · <a href="index.html">Home</a></p>
 </footer>
 
 <script src="assets/ads.js"></script>
@@ -351,6 +351,7 @@ $('name').addEventListener('keydown',function(e){if(e.key==='Enter')(cleanCode($
   var saved=store('atw-name');if(saved){$('name').value=saved;$('avatar').textContent=saved[0].toUpperCase()}
   var q=new URLSearchParams(location.search).get('room');
   if(q){$('code').value=cleanCode(q);$('joinBtn').textContent='Join meeting'}
+  if(location.hash==='#start'&&!$('name').value)$('name').focus(); // arrived from a "Start a meeting" button
   renderLobbyToggles();startPreview();
   AdEngine.load('ads/ads.json').then(function(){stopLobbyAd=AdEngine.lobby($('lobbyAd'))});
 })();
