@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Sponsor Ads Manager</title>
+<link rel="icon" type="image/svg+xml" href="../assets/logo-mark.svg">
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  .wrap{max-width:1100px;margin:0 auto;padding:2rem 16px 6rem}
+  h1{font-size:clamp(1.8rem,4vw,2.6rem);margin:.5rem 0}
+  h2{font-size:1.25rem;margin:2.2rem 0 .8rem}
+  .muted{color:var(--muted)}
+  .steps{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:1rem 1.25rem;margin:1rem 0;color:var(--muted);font-size:.92rem}
+  .steps ol{margin:.3rem 0 0;padding-left:1.2rem}
+  .steps code{color:var(--text)}
+  .actions{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:.5rem;padding:.75rem 0;background:var(--bg)}
+  .actions .btn{margin:0}
+  .box{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:1.1rem 1.25rem}
+  .grid-f{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:.9rem 1rem}
+  label.f{display:flex;flex-direction:column;gap:.3rem;font-size:.82rem;color:var(--muted)}
+  label.f input,label.f select{padding:.6rem .75rem;border-radius:10px;border:1px solid var(--border);background:var(--glass);color:var(--text);font:inherit;font-size:.95rem;width:100%}
+  label.f input[type=checkbox]{width:auto}
+  .check{display:inline-flex;align-items:center;gap:.4rem;font-size:.88rem;margin-right:.9rem;cursor:pointer}
+  .group{border-top:1px solid var(--border);margin-top:1rem;padding-top:1rem}
+  .group h3{font-size:.95rem;margin:0 0 .7rem}
+  .ad{display:grid;grid-template-columns:260px 1fr;gap:1.25rem;margin-bottom:1rem}
+  .ad .pv{display:flex;flex-direction:column;gap:.5rem}
+  .ad video{width:100%;aspect-ratio:16/9;background:#000;border-radius:12px}
+  .status{display:inline-block;font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;background:var(--glass);border:1px solid var(--border)}
+  .status.live{color:#05250f;background:#2ee6a0;border-color:#2ee6a0}
+  .status.warn{color:#1a1400;background:#ffd34d;border-color:#ffd34d}
+  .row-btns{display:flex;flex-wrap:wrap;gap:.4rem}
+  .mini{background:var(--glass);border:1px solid var(--border);color:var(--text);border-radius:999px;padding:.35rem .8rem;font:inherit;font-size:.8rem;cursor:pointer}
+  .mini.danger{color:#ff8a8f}
+  .full{grid-column:1/-1}
+  .msg{min-height:1.4em;font-size:.9rem;color:var(--accent3)}
+  @media (max-width:760px){.ad{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="../meet.html" class="muted">&larr; Back to Meet</a>
+  <h1>Sponsor ads manager</h1>
+  <p class="muted">Set up the sponsor videos that play in Around The World Meet: who they're for, where they appear, when they run and how often.</p>
+  <div class="steps"><strong>How publishing works</strong>
+    <ol>
+      <li>Put each sponsor video (MP4, ideally under 5 MB) in the repo's <code>ads/videos/</code> folder, or use a full <code>https://</code> link to a video hosted elsewhere.</li>
+      <li>Edit the ads below. Your changes are kept in this browser as a draft until you download them.</li>
+      <li>Click <strong>Download ads.json</strong> and replace <code>ads/ads.json</code> in the GitHub repo with it. The site updates on the next deploy.</li>
+    </ol>
+  </div>
+
+  <div class="actions">
+    <button class="btn small" id="download" type="button">Download ads.json</button>
+    <button class="btn small ghost" id="addAd" type="button">+ Add sponsor ad</button>
+    <button class="btn small ghost" id="copy" type="button">Copy JSON</button>
+    <label class="btn small ghost">Import file<input type="file" id="importFile" accept=".json,application/json" hidden></label>
+    <button class="btn small ghost" id="reset" type="button">Discard draft</button>
+    <span class="msg" id="msg" role="status" aria-live="polite"></span>
+  </div>
+
+  <h2>Global settings</h2>
+  <div class="box" id="settings"></div>
+
+  <h2>Sponsor ads <span class="muted" id="count"></span></h2>
+  <div id="ads"></div>
+</div>
+
+<script src="../assets/ads.js"></script>
+<script>
+var $=function(id){return document.getElementById(id)};
+var DAYS=['mon','tue','wed','thu','fri','sat','sun'];
+var PLACEMENTS=[['preroll','Before joining (full screen)'],['lobby','Join screen slot'],['incall','During call (corner)']];
+var data=null,original=null;
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){return null}}
+function flash(t){$('msg').textContent=t;clearTimeout(flash.h);flash.h=setTimeout(function(){$('msg').textContent=''},3000)}
+function save(){store('atw-ads-draft',JSON.stringify(data));render.status()}
+function src(p){p=String(p||'');return !p||/^(https?:)?\/\//i.test(p)||p[0]==='/'?p:'../'+p} // paths in ads.json are relative to the site root
+function newAd(){return {id:'ad-'+Date.now().toString(36),sponsor:'',title:'',video:'ads/videos/',poster:'',clickUrl:'',cta:'Learn more',placements:['preroll','lobby','incall'],weight:1,active:true,startDate:'',endDate:'',days:[],hours:[],maxViewsPerSession:0}}
+
+function field(label,value,onchange,opts){
+  opts=opts||{};
+  var l=document.createElement('label');l.className='f'+(opts.full?' full':'');
+  l.appendChild(document.createTextNode(label));
+  var i=document.createElement('input');i.type=opts.type||'text';
+  if(opts.placeholder)i.placeholder=opts.placeholder;
+  if(opts.min!=null)i.min=opts.min;if(opts.step)i.step=opts.step;
+  if(i.type==='checkbox')i.checked=!!value;else i.value=value==null?'':value;
+  i.addEventListener(i.type==='checkbox'?'change':'input',function(){
+    var v=i.type==='checkbox'?i.checked:i.type==='number'?(i.value===''?0:Number(i.value)):i.value;
+    onchange(v);save();if(opts.after)opts.after();
+  });
+  l.appendChild(i);return l;
+}
+function check(label,on,onchange){
+  var l=document.createElement('label');l.className='check';
+  var i=document.createElement('input');i.type='checkbox';i.checked=on;
+  i.onchange=function(){onchange(i.checked);save()};
+  l.appendChild(i);l.appendChild(document.createTextNode(label));return l;
+}
+function group(title,parent){var g=document.createElement('div');g.className='group';var h=document.createElement('h3');h.textContent=title;g.appendChild(h);var gr=document.createElement('div');gr.className='grid-f';g.appendChild(gr);parent.appendChild(g);return gr}
+
+function statusOf(ad){
+  if(ad.active===false)return ['Paused',''];
+  if(!ad.video||/\/$/.test(ad.video))return ['No video set','warn'];
+  if(!ad.placements||!ad.placements.length)return ['No placement chosen','warn'];
+  var t=new Date(),d=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+  if(ad.endDate&&d>ad.endDate)return ['Ended '+ad.endDate,''];
+  if(ad.startDate&&d<ad.startDate)return ['Starts '+ad.startDate,'warn'];
+  AdEngine.use({settings:{preroll:{enabled:true},lobby:{enabled:true},incall:{enabled:true}},ads:[]});
+  var now=ad.placements.some(function(p){return AdEngine.eligible(Object.assign({},ad,{maxViewsPerSession:0}),p)});
+  return now?['Running now','live']:['Scheduled (outside its days/hours right now)','warn'];
+}
+
+var render={
+  settings:function(){
+    var s=data.settings,box=$('settings');box.innerHTML='';
+    var top=document.createElement('div');top.className='grid-f';box.appendChild(top);
+    top.appendChild(check('Show sponsor ads at all',s.enabled!==false,function(v){s.enabled=v}));
+    top.appendChild(field('Reporting URL (optional)',s.trackUrl,function(v){s.trackUrl=v.trim()},{placeholder:'https://… receives a POST per view, click, skip',full:true}));
+    var p=group('Before joining (full-screen pre-roll)',box);
+    p.appendChild(check('On',s.preroll.enabled,function(v){s.preroll.enabled=v}));
+    p.appendChild(field('Skip button appears after (seconds)',s.preroll.skipAfterSeconds,function(v){s.preroll.skipAfterSeconds=v},{type:'number',min:0}));
+    p.appendChild(field('Max pre-rolls per visit',s.preroll.maxPerSession,function(v){s.preroll.maxPerSession=v},{type:'number',min:0}));
+    var l=group('Join screen slot (muted, loops)',box);
+    l.appendChild(check('On',s.lobby.enabled,function(v){s.lobby.enabled=v}));
+    l.appendChild(field('Switch sponsor every (seconds, 0 = after each video)',s.lobby.rotateSeconds,function(v){s.lobby.rotateSeconds=v},{type:'number',min:0}));
+    var c=group('During the call (small muted corner video)',box);
+    c.appendChild(check('On',s.incall.enabled,function(v){s.incall.enabled=v}));
+    c.appendChild(field('First ad after (minutes)',s.incall.firstAfterMinutes,function(v){s.incall.firstAfterMinutes=v},{type:'number',min:0,step:'any'}));
+    c.appendChild(field('Then every (minutes)',s.incall.everyMinutes,function(v){s.incall.everyMinutes=v},{type:'number',min:0,step:'any'}));
+    c.appendChild(field('Max ads per call',s.incall.maxPerCall,function(v){s.incall.maxPerCall=v},{type:'number',min:0}));
+    c.appendChild(field('Hide after (seconds on screen)',s.incall.maxSecondsOnScreen,function(v){s.incall.maxSecondsOnScreen=v},{type:'number',min:0}));
+  },
+  ads:function(){
+    var list=$('ads');list.innerHTML='';
+    $('count').textContent='('+data.ads.length+')';
+    data.ads.forEach(function(ad,idx){
+      var card=document.createElement('div');card.className='box ad';
+      var pv=document.createElement('div');pv.className='pv';
+      var v=document.createElement('video');v.controls=true;v.muted=true;v.preload='metadata';v.playsInline=true;
+      function setV(){v.src=src(ad.video);if(ad.poster)v.poster=src(ad.poster)}setV();
+      var st=document.createElement('span');st.className='status';st.dataset.idx=idx;
+      var btns=document.createElement('div');btns.className='row-btns';
+      function mini(t,fn,cls){var b=document.createElement('button');b.type='button';b.className='mini'+(cls?' '+cls:'');b.textContent=t;b.onclick=fn;btns.appendChild(b)}
+      mini('Preview as pre-roll',function(){previewPreroll(ad)});
+      mini('↑',function(){if(idx>0){data.ads.splice(idx-1,0,data.ads.splice(idx,1)[0]);save();render.ads()}});
+      mini('↓',function(){if(idx<data.ads.length-1){data.ads.splice(idx+1,0,data.ads.splice(idx,1)[0]);save();render.ads()}});
+      mini('Duplicate',function(){var c=JSON.parse(JSON.stringify(ad));c.id=newAd().id;data.ads.splice(idx+1,0,c);save();render.ads()});
+      mini('Delete',function(){if(confirm('Delete the ad for '+(ad.sponsor||'this sponsor')+'?')){data.ads.splice(idx,1);save();render.ads()}},'danger');
+      pv.appendChild(v);pv.appendChild(st);pv.appendChild(btns);
+
+      var f=document.createElement('div');f.className='grid-f';
+      f.appendChild(check('Active',ad.active!==false,function(x){ad.active=x}));
+      f.appendChild(field('Sponsor name',ad.sponsor,function(x){ad.sponsor=x},{placeholder:'Shown as "Sponsored · Name"'}));
+      f.appendChild(field('Ad ID (for reports)',ad.id,function(x){ad.id=x.trim()}));
+      f.appendChild(field('Video file or URL',ad.video,function(x){ad.video=x.trim()},{placeholder:'ads/videos/sponsor.mp4',full:true,after:setV}));
+      f.appendChild(field('Poster image (optional)',ad.poster,function(x){ad.poster=x.trim()},{after:setV}));
+      f.appendChild(field('Button link',ad.clickUrl,function(x){ad.clickUrl=x.trim()},{placeholder:'https://sponsor.co.za'}));
+      f.appendChild(field('Button text',ad.cta,function(x){ad.cta=x}));
+      f.appendChild(field('Weight (higher = shown more)',ad.weight==null?1:ad.weight,function(x){ad.weight=x},{type:'number',min:0,step:'any'}));
+      f.appendChild(field('Start date',ad.startDate,function(x){ad.startDate=x},{type:'date'}));
+      f.appendChild(field('End date',ad.endDate,function(x){ad.endDate=x},{type:'date'}));
+      f.appendChild(field('Times of day (blank = all day)',(ad.hours||[]).join(', '),function(x){ad.hours=x.split(',').map(function(s){return s.trim()}).filter(Boolean)},{placeholder:'08:00-12:00, 17:00-21:00'}));
+      f.appendChild(field('Max views per visitor visit (0 = no limit)',ad.maxViewsPerSession||0,function(x){ad.maxViewsPerSession=x},{type:'number',min:0}));
+      var pl=document.createElement('div');pl.className='full';
+      pl.appendChild(Object.assign(document.createElement('div'),{className:'muted',textContent:'Where it plays',style:'font-size:.82rem;margin-bottom:.3rem'}));
+      PLACEMENTS.forEach(function(p){pl.appendChild(check(p[1],(ad.placements||[]).indexOf(p[0])>=0,function(on){ad.placements=(ad.placements||[]).filter(function(x){return x!==p[0]});if(on)ad.placements.push(p[0])}))});
+      f.appendChild(pl);
+      var dy=document.createElement('div');dy.className='full';
+      dy.appendChild(Object.assign(document.createElement('div'),{className:'muted',textContent:'Days (none ticked = every day)',style:'font-size:.82rem;margin-bottom:.3rem'}));
+      DAYS.forEach(function(d){dy.appendChild(check(d[0].toUpperCase()+d.slice(1),(ad.days||[]).indexOf(d)>=0,function(on){ad.days=(ad.days||[]).filter(function(x){return x!==d});if(on)ad.days.push(d)}))});
+      f.appendChild(dy);
+      card.appendChild(pv);card.appendChild(f);list.appendChild(card);
+    });
+    render.status();
+  },
+  status:function(){
+    document.querySelectorAll('.status').forEach(function(st){var s=statusOf(data.ads[+st.dataset.idx]);st.textContent=s[0];st.className='status '+s[1]});
+  }
+};
+
+function previewPreroll(ad){
+  try{sessionStorage.removeItem('atw-ad-preroll-count')}catch(e){}
+  AdEngine.use({settings:{enabled:true,trackUrl:'',preroll:{enabled:true,skipAfterSeconds:data.settings.preroll.skipAfterSeconds,maxPerSession:99}},
+    ads:[Object.assign({},ad,{video:src(ad.video),poster:src(ad.poster),active:true,startDate:'',endDate:'',days:[],hours:[],placements:['preroll'],maxViewsPerSession:0})]});
+  AdEngine.preroll().then(function(r){if(!r)flash('That video could not play. Check the file path.')});
+}
+function load(d){
+  d=d||{};
+  data={settings:Object.assign({enabled:true,trackUrl:''},d.settings||{}),ads:d.ads||[]};
+  ['preroll','lobby','incall'].forEach(function(k){data.settings[k]=Object.assign({enabled:true},data.settings[k]||{})});
+  render.settings();render.ads();
+}
+function json(){return JSON.stringify(data,null,2)+'\n'}
+
+$('addAd').onclick=function(){data.ads.push(newAd());save();render.ads();window.scrollTo(0,document.body.scrollHeight)};
+$('download').onclick=function(){
+  var ids={},dup=data.ads.some(function(a){if(ids[a.id])return true;ids[a.id]=1});
+  if(dup&&!confirm('Two ads share the same ID, so reports will mix them up. Download anyway?'))return;
+  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([json()],{type:'application/json'}));a.download='ads.json';a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href)},1000);flash('Downloaded. Replace ads/ads.json in the repo with it.');
+};
+$('copy').onclick=function(){navigator.clipboard.writeText(json()).then(function(){flash('JSON copied')},function(){flash('Copy failed: use Download instead')})};
+$('importFile').onchange=function(e){
+  var f=e.target.files[0];if(!f)return;
+  f.text().then(function(t){load(JSON.parse(t));save();flash('Imported '+f.name)}).catch(function(){flash('That file is not valid ads JSON')});
+  e.target.value='';
+};
+$('reset').onclick=function(){if(confirm('Throw away your draft and reload the published ads.json?')){store('atw-ads-draft',null);load(JSON.parse(original));flash('Draft discarded')}};
+
+fetch('ads.json',{cache:'no-cache'}).then(function(r){return r.json()}).catch(function(){return {settings:{},ads:[]}}).then(function(pub){
+  original=JSON.stringify(pub);
+  var draft=store('atw-ads-draft');
+  if(draft&&draft!==original){try{load(JSON.parse(draft));flash('Loaded your unsaved draft');return}catch(e){}}
+  load(pub);
+});
+</script>
+</body>
+</html>

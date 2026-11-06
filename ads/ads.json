@@ -1,0 +1,45 @@
+{
+  "settings": {
+    "enabled": true,
+    "trackUrl": "",
+    "preroll": { "enabled": true, "skipAfterSeconds": 5, "maxPerSession": 1 },
+    "lobby": { "enabled": true, "rotateSeconds": 30 },
+    "incall": { "enabled": true, "firstAfterMinutes": 5, "everyMinutes": 15, "maxPerCall": 3, "maxSecondsOnScreen": 30 }
+  },
+  "ads": [
+    {
+      "id": "demo-1",
+      "sponsor": "Demo Sponsor One",
+      "title": "Your brand here",
+      "video": "ads/videos/demo-sponsor-1.mp4",
+      "poster": "",
+      "clickUrl": "https://wa.me/27633531662?text=I%27d%20like%20to%20advertise%20on%20Around%20The%20World%20Meet",
+      "cta": "Advertise with us",
+      "placements": ["preroll", "lobby", "incall"],
+      "weight": 2,
+      "active": true,
+      "startDate": "",
+      "endDate": "",
+      "days": [],
+      "hours": [],
+      "maxViewsPerSession": 0
+    },
+    {
+      "id": "demo-2",
+      "sponsor": "Demo Sponsor Two",
+      "title": "Advertise with us",
+      "video": "ads/videos/demo-sponsor-2.mp4",
+      "poster": "",
+      "clickUrl": "index.html",
+      "cta": "Book a 360 booth",
+      "placements": ["preroll", "lobby", "incall"],
+      "weight": 1,
+      "active": true,
+      "startDate": "",
+      "endDate": "",
+      "days": [],
+      "hours": [],
+      "maxViewsPerSession": 0
+    }
+  ]
+}
