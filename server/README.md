@@ -1,0 +1,170 @@
+# TalentTrade account server
+
+One small program, `talenttrade_server.py`, that runs on **your own machine** and:
+
+- serves the TalentTrade website (homepage, meetings, join, sign up, log in)
+- handles accounts: sign up, log in, log out, email confirmation, forgot/reset password
+- can give logged-in people a **meeting pass** for your own Jitsi server, so only account holders can start meetings while guests still join with a link
+
+It only uses what comes with Python (3.8 or newer), so there's nothing to install. Linux Mint already has Python.
+
+## Where accounts are kept
+
+- In one database file: `server/data/talenttrade.db`. Only the user running the server can read it, and it is never sent to GitHub (it's listed in `.gitignore`).
+- Passwords are stored **scrambled with scrypt** (salted, slow, one-way). Nobody, including you, can read them back.
+- Logins use a secure cookie that page scripts can't read. Sessions last 30 days.
+- Too many attempts at log in, sign up or password reset from one address are blocked for 10 minutes.
+- Requests from other websites are refused.
+
+## 1. Try it on your Mint laptop
+
+From the project folder (the one with `index.html`):
+
+```bash
+python3 server/talenttrade_server.py
+```
+
+Open <http://localhost:8090>. You'll see the site, and **Sign up** and **Log in** now work.
+
+With no email set up, new accounts are confirmed straight away, and password-reset links are **printed in the terminal** instead of emailed. That's handy for testing.
+
+To try it from your phone on the same Wi-Fi, run it like this instead and open `http://YOUR-LAPTOP-IP:8090` (find the IP with `hostname -I`):
+
+```bash
+TT_HOST=0.0.0.0 TT_PUBLIC_URL=http://YOUR-LAPTOP-IP:8090 python3 server/talenttrade_server.py
+```
+
+Press **Ctrl+C** to stop it.
+
+## 2. Settings
+
+Settings are environment variables, put in front of the command as above, or in the service file in step 5.
+
+| Setting | Default | What it does |
+|---|---|---|
+| `TT_PORT` | `8090` | Port the server listens on. |
+| `TT_HOST` | `127.0.0.1` | `127.0.0.1` = this computer only. `0.0.0.0` = other devices too. |
+| `TT_PUBLIC_URL` | `http://localhost:8090` | The site's address as visitors see it. Used in email links. |
+| `TT_DB` | `server/data/talenttrade.db` | Where the accounts database is stored. |
+| `TT_REQUIRE_LOGIN_TO_HOST` | `0` | `1` = people must log in to **start** a meeting. Guests can still join with a link. |
+| `TT_SESSION_DAYS` | `30` | How long people stay logged in. |
+| `TT_TRUST_PROXY` | `0` | Set to `1` when running behind nginx (step 6). |
+| `TT_COOKIE_SECURE` | on for `https://` | Only send the login cookie over HTTPS. |
+| `TT_SMTP_HOST`, `TT_SMTP_PORT`, `TT_SMTP_USER`, `TT_SMTP_PASS`, `TT_SMTP_FROM` | (off) | Your email account for sending confirmation and reset emails (step 3). |
+| `TT_JITSI_APP_ID`, `TT_JITSI_APP_SECRET` | (off) | Meeting passes for your own Jitsi server (step 4). |
+| `TT_JITSI_SUB`, `TT_JITSI_AUD` | `*`, `jitsi` | Meeting-pass details; change only if Jitsi rejects the passes. |
+
+## 3. Turn on emails
+
+Any email account that allows SMTP works: your domain's email, or Gmail with an "App password". Example for Gmail:
+
+```bash
+TT_SMTP_HOST=smtp.gmail.com TT_SMTP_PORT=587 \
+TT_SMTP_USER=you@gmail.com TT_SMTP_PASS='your-16-letter-app-password' \
+TT_SMTP_FROM='TalentTrade <you@gmail.com>' \
+python3 server/talenttrade_server.py
+```
+
+With email on:
+
+- **New accounts:** must click the link in a "Confirm your TalentTrade account" email before they can log in. The link works for 48 hours.
+- **Forgot password:** sends a reset link that works once, for 1 hour. Resetting logs the account out everywhere else.
+
+## 4. Only account holders can start meetings (with your own Jitsi server)
+
+The account server can hand logged-in people a signed **meeting pass** (a JWT) that your Jitsi server checks.
+
+1. Choose an app ID and a long random secret, for example by running `openssl rand -hex 32`.
+2. Start the account server with them:
+   ```bash
+   TT_JITSI_APP_ID=talenttrade TT_JITSI_APP_SECRET=the-long-secret TT_REQUIRE_LOGIN_TO_HOST=1 \
+   python3 server/talenttrade_server.py
+   ```
+3. Tell Jitsi to accept those passes. In docker-jitsi-meet's `.env`, set:
+   ```
+   ENABLE_AUTH=1
+   AUTH_TYPE=jwt
+   JWT_APP_ID=talenttrade
+   JWT_APP_SECRET=the-long-secret
+   ENABLE_GUESTS=1
+   ```
+   Then run `docker compose down && docker compose up -d`. Check these names against Jitsi's own "JWT authentication" docs for your version.
+4. In `meet.html`, set `DOMAIN` to your Jitsi server's address.
+
+**Result:** logged-in people can start meetings, and guests with the link can join once the host is in.
+
+Keep the secret private. Anyone who has it can make passes.
+
+## 5. Keep it running (start automatically with the computer)
+
+Create `/etc/systemd/system/talenttrade.service`, changing the paths and user to yours:
+
+```ini
+[Unit]
+Description=TalentTrade account server
+After=network-online.target
+
+[Service]
+User=YOUR-LINUX-USERNAME
+WorkingDirectory=/home/YOUR-LINUX-USERNAME/talenttrade
+ExecStart=/usr/bin/python3 server/talenttrade_server.py
+Environment=TT_PUBLIC_URL=https://talenttrade.co.za
+Environment=TT_TRUST_PROXY=1
+# Environment=TT_SMTP_HOST=...   (add the rest of your settings like this)
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Then:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now talenttrade
+sudo systemctl status talenttrade        # is it running?
+journalctl -u talenttrade -f             # see its messages
+```
+
+## 6. Putting it on the internet (HTTPS)
+
+Run it behind **nginx** with a free Let's Encrypt certificate, and keep `TT_HOST=127.0.0.1`. Example nginx site:
+
+```nginx
+server {
+    server_name talenttrade.co.za;
+    location / {
+        proxy_pass http://127.0.0.1:8090;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    listen 443 ssl; # certificate lines added by: sudo certbot --nginx -d talenttrade.co.za
+}
+```
+
+Set `TT_PUBLIC_URL=https://talenttrade.co.za` and `TT_TRUST_PROXY=1`.
+
+## 7. Backups
+
+Everything is in the one database file. To copy it safely while the server runs:
+
+```bash
+sqlite3 server/data/talenttrade.db ".backup 'talenttrade-backup.db'"
+```
+
+Keep backups somewhere private: they contain everyone's email address.
+
+## What the server answers (for developers)
+
+| Address | What it does |
+|---|---|
+| `GET /api/config` | Which features are on. |
+| `POST /api/signup` | `{name, email, password, role}` creates an account. |
+| `GET /api/confirm?token=` | The email confirmation link. |
+| `POST /api/login` | `{email, password}` logs in. |
+| `GET /api/me` | The logged-in person. |
+| `POST /api/logout` | Logs out. |
+| `POST /api/forgot` | `{email}` sends a reset link. |
+| `POST /api/reset` | `{token, password}` sets a new password. |
+| `GET /api/jitsi-token` | A meeting pass for the logged-in person. |

@@ -113,7 +113,7 @@
 <body>
 <header class="nav">
   <a class="logo" href="index.html"><img class="mark" src="assets/tt-mark.png" alt="" width="40" height="36"><span class="brand"><img class="wordmark" src="assets/tt-wordmark.png" alt="TalentTrade" width="139" height="19"><small>Meet</small></span></a>
-  <nav><a href="index.html">Home</a></nav>
+  <nav id="acct"><a href="index.html">Home</a><a href="login.html">Log in</a><a class="btn small" href="signup.html">Sign up</a></nav>
 </header>
 
 <main class="lobby" id="lobby">
@@ -171,6 +171,7 @@
   <p>TalentTrade Meet · a <strong>Techmanic</strong> brand · <a href="index.html">Home</a></p>
 </footer>
 
+<script src="assets/auth.js"></script>
 <script src="assets/ads.js"></script>
 <script src="assets/present-timer.js"></script>
 <script>
@@ -239,7 +240,7 @@ $('lobbyCam').onclick=function(){state.cam=!state.cam;renderLobbyToggles()};
 $('name').addEventListener('input',function(){var n=this.value.trim();$('avatar').textContent=n?n[0].toUpperCase():'?'});
 
 /* ---- Meeting ---- */
-var api=null,timerId=null,people=1,peers={},joining=false,stopLobbyAd=null,stopCallAds=null;
+var account=null,jitsiPass=null,api=null,timerId=null,people=1,peers={},joining=false,stopLobbyAd=null,stopCallAds=null;
 function needName(){
   var n=$('name').value.trim();
   if(!n){$('err').textContent='Please enter your name so others know who you are.';$('name').focus();return null}
@@ -269,6 +270,7 @@ function joinRoom(code,name){
     parentNode:$('stage'),
     width:'100%',height:'100%',
     userInfo:{displayName:name},
+    jwt:jitsiPass||undefined, // meeting pass from your account server, if it issues them
     configOverwrite:{
       prejoinConfig:{enabled:false},
       prejoinPageEnabled:false,
@@ -402,7 +404,11 @@ function endMeeting(){
   toast('You left the meeting');
 }
 
-$('newMeeting').onclick=function(){startMeeting(randomCode())};
+$('newMeeting').onclick=function(){
+  // If hosting needs an account (see assets/auth.js), send guests to log in first.
+  if(TTAuth.requireLoginToHost&&!account){location.href='login.html?next=meet.html%23start';return}
+  startMeeting(randomCode());
+};
 $('joinBtn').onclick=function(){startMeeting(cleanCode($('code').value))};
 $('code').addEventListener('keydown',function(e){if(e.key==='Enter')$('joinBtn').click()});
 $('name').addEventListener('keydown',function(e){if(e.key==='Enter')(cleanCode($('code').value)?$('joinBtn'):$('newMeeting')).click()});
@@ -410,6 +416,18 @@ $('name').addEventListener('keydown',function(e){if(e.key==='Enter')(cleanCode($
 /* ---- Start ---- */
 (function(){
   var saved=store('atw-name');if(saved){$('name').value=saved;$('avatar').textContent=saved[0].toUpperCase()}
+  // Logged-in people: show who they are, and fill in their name if it's empty.
+  TTAuth.user().then(function(u){
+    account=u;if(!u)return;
+    TTAuth.jitsiToken().then(function(t){jitsiPass=t});
+    var n=TTAuth.displayName(u);
+    if(!$('name').value&&n){$('name').value=n;$('avatar').textContent=n[0].toUpperCase()}
+    var nav=$('acct');nav.innerHTML='<a href="index.html">Home</a>';
+    var who=document.createElement('span');who.className='signed-in';who.textContent='Hi, '+n;
+    var out=document.createElement('a');out.href='#';out.textContent='Log out';
+    out.onclick=function(e){e.preventDefault();TTAuth.signOut().then(function(){location.reload()})};
+    nav.appendChild(who);nav.appendChild(out);
+  });
   var q=new URLSearchParams(location.search).get('room');
   if(q){$('code').value=cleanCode(q);$('joinBtn').textContent='Join meeting'}
   if(location.hash==='#start'&&!$('name').value)$('name').focus(); // arrived from a "Start a meeting" button
