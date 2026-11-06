@@ -1,4 +1,4 @@
-/* Around The World Meet: presentation timer.
+/* TalentTrade Meet: presentation timer.
  *
  * PresentTimer.init({ stage, button, popupHost, presets, send, name })
  *   stage      - element the big countdown is shown over (the video area)

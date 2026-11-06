@@ -3,12 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Around The World Meet | Video Calls</title>
-<meta name="description" content="Free video meetings by Around The World. Start a call, share the link, and talk face to face.">
-<link rel="icon" type="image/svg+xml" href="assets/logo-mark.svg">
+<title>TalentTrade Meet | Video Calls</title>
+<meta name="description" content="Free video meetings by TalentTrade. Start a call, share the link, and talk face to face.">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="theme-color" content="#066a6c">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="assets/style.css">
 <style>
   /* ---------- Lobby ---------- */
@@ -18,7 +20,7 @@
   .preview .off{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.6rem;color:var(--muted);text-align:center;padding:1rem}
   .preview .avatar{width:84px;height:84px;border-radius:50%;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;color:#fff}
   .preview .toggles{position:absolute;left:0;right:0;bottom:14px;display:flex;justify-content:center;gap:.7rem}
-  .round{width:48px;height:48px;border-radius:50%;border:1px solid var(--border);background:rgba(13,13,24,.75);color:var(--text);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(8px)}
+  .round{width:48px;height:48px;border-radius:50%;border:1px solid var(--border);background:rgba(0,0,30,.6);color:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(8px)}
   .round.off-state{background:#e5484d;border-color:#e5484d}
   .panel h1{font-size:clamp(2rem,4.5vw,3.2rem);margin:.8rem 0 .6rem}
   .panel p{color:var(--muted);margin:0 0 1.5rem}
@@ -37,13 +39,13 @@
   /* ---------- Meeting ---------- */
   body.in-call{overflow:hidden}
   body.in-call .nav,body.in-call .lobby,body.in-call footer{display:none}
-  .room{display:none;position:fixed;inset:0;flex-direction:column;background:#000;z-index:50}
+  .room{--bg2:#0d1326;--text:#f4f6fb;--muted:#a3adbd;--border:rgba(255,255,255,.12);--glass:rgba(255,255,255,.06);color:var(--text);display:none;position:fixed;inset:0;flex-direction:column;background:#000;z-index:50}
   body.in-call .room{display:flex}
   .room-top{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.6rem 1rem;background:var(--bg2);border-bottom:1px solid var(--border);font-size:.9rem}
   .room-top .meta{display:flex;align-items:center;gap:.8rem;min-width:0}
   .room-top .meta strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .live{display:inline-flex;align-items:center;gap:.4rem;color:var(--accent3);font-variant-numeric:tabular-nums}
-  .live::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent3);box-shadow:0 0 10px var(--accent3)}
+  .live{display:inline-flex;align-items:center;gap:.4rem;color:#2fbfa0;font-variant-numeric:tabular-nums}
+  .live::before{content:"";width:8px;height:8px;border-radius:50%;background:#2fbfa0;box-shadow:0 0 10px #2fbfa0}
   .chip{background:var(--glass);border:1px solid var(--border);color:var(--text);border-radius:999px;padding:.4rem .9rem;font:inherit;font-size:.85rem;cursor:pointer;white-space:nowrap}
   #stage{flex:1;min-height:0;position:relative}
   #stage iframe{width:100%;height:100%;border:0;display:block}
@@ -51,19 +53,19 @@
   .toolbar{display:flex;justify-content:center;align-items:stretch;gap:.25rem;padding:.5rem .75rem;background:var(--bg2);border-top:1px solid var(--border);overflow-x:auto}
   .tool{display:flex;flex-direction:column;align-items:center;gap:.2rem;min-width:72px;padding:.45rem .6rem;border:0;border-radius:12px;background:transparent;color:var(--text);font:inherit;font-size:.75rem;cursor:pointer;position:relative}
   .tool:hover{background:var(--glass)}
-  .tool.active{color:var(--accent3)}
+  .tool.active{color:var(--orange)}
   .tool.muted svg{color:#ff6b70}
-  .tool .count{position:absolute;top:2px;right:12px;background:var(--accent);color:var(--on-accent);font-weight:700;border-radius:999px;font-size:.65rem;padding:0 .4rem;line-height:1.4}
+  .tool .count{position:absolute;top:2px;right:12px;background:var(--orange);color:var(--navy);font-weight:800;border-radius:999px;font-size:.65rem;padding:0 .4rem;line-height:1.4}
   .tool.leave{background:#e5484d;color:#fff;margin-left:.75rem;min-width:84px}
   .tool.leave:hover{background:#c93a3f}
   .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:.6rem 1rem;border-radius:999px;font-size:.9rem;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60}
   .toast.show{opacity:1}
   /* presentation timer */
-  .ptimer{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:6;min-width:190px;padding:.55rem 1.1rem .7rem;border-radius:18px;background:rgba(13,13,24,.88);border:1px solid var(--border);backdrop-filter:blur(10px);text-align:center;cursor:pointer;box-shadow:0 14px 40px -12px rgba(0,0,0,.8)}
-  .ptimer .pt-label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+  .ptimer{color:#fff;position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:6;min-width:190px;padding:.55rem 1.1rem .7rem;border-radius:18px;background:rgba(13,13,24,.88);border:1px solid var(--border);backdrop-filter:blur(10px);text-align:center;cursor:pointer;box-shadow:0 14px 40px -12px rgba(0,0,0,.8)}
+  .ptimer .pt-label{font-size:.72rem;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
   .ptimer .pt-time{font-size:2.6rem;font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
   .ptimer .pt-track{height:5px;border-radius:5px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:.35rem}
-  .ptimer .pt-bar{height:100%;background:#3fb28a;transform-origin:left;transition:transform .25s linear}
+  .ptimer .pt-bar{height:100%;background:#2fbfa0;transform-origin:left;transition:transform .25s linear}
   .ptimer.warn{border-color:#f59e0b}.ptimer.warn .pt-time{color:#fbbf24}.ptimer.warn .pt-bar{background:#f59e0b}
   .ptimer.danger,.ptimer.over{border-color:#e5484d}.ptimer.danger .pt-time,.ptimer.over .pt-time{color:#ff6b70}.ptimer.danger .pt-bar{background:#e5484d}
   .ptimer.over{background:rgba(70,10,16,.92);animation:ptpulse 1s ease-in-out infinite}
@@ -98,7 +100,7 @@
 </head>
 <body>
 <header class="nav">
-  <a class="logo" href="index.html"><img class="mark" src="assets/logo-mark.svg" alt="" width="34" height="34"><span class="brand">Around The World<small>Meet</small></span></a>
+  <a class="logo" href="index.html"><img class="mark" src="assets/tt-mark.png" alt="" width="40" height="36"><span class="brand"><img class="wordmark" src="assets/tt-wordmark.png" alt="TalentTrade" width="139" height="19"><small>Meet</small></span></a>
   <nav><a href="index.html">Back to site</a></nav>
 </header>
 
@@ -152,7 +154,8 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <footer>
-  <p>Around The World Meet · a <strong>Techmanic</strong> brand · <a href="index.html">360 photo booth hire</a></p>
+  <p class="tagline">“Limited funds, big dreams, problem solved”</p>
+  <p>TalentTrade Meet · a <strong>Techmanic</strong> brand · <a href="index.html">360 photo booth hire</a></p>
 </footer>
 
 <script src="assets/ads.js"></script>
@@ -163,7 +166,7 @@
    embedded calls (see README notes in the commit). Swap for your own Jitsi server
    or an 8x8 JaaS domain later without changing anything else. */
 var DOMAIN = 'meet.jit.si';
-var ROOM_PREFIX = 'AroundTheWorld-'; // keeps our rooms apart from other people's on the shared server
+var ROOM_PREFIX = 'TalentTrade-'; // keeps our rooms apart from other people's on the shared server
 
 var $ = function(id){return document.getElementById(id)};
 var ICONS = {

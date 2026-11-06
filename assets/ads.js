@@ -1,4 +1,4 @@
-/* Around The World Meet: sponsor video ad engine.
+/* TalentTrade Meet: sponsor video ad engine.
  *
  * Everything is driven by ads/ads.json (edit it by hand or with ads/admin.html):
  *   settings.preroll  - full-screen ad before someone joins a meeting (skippable)
@@ -319,16 +319,17 @@
     if (document.getElementById('atw-ad-styles')) return;
     var css =
       '.ad-label{display:flex;align-items:center;gap:.5rem;font-size:.78rem;min-width:0}' +
-      '.ad-tag{background:var(--accent,#c9a24d);color:var(--on-accent,#0a0a0b);font-weight:800;text-transform:uppercase;letter-spacing:.06em;font-size:.65rem;padding:.15rem .45rem;border-radius:6px}' +
+      '.ad-tag{background:var(--teal,#028392);color:#fff;font-weight:800;text-transform:uppercase;letter-spacing:.06em;font-size:.65rem;padding:.15rem .45rem;border-radius:6px}' +
       '.ad-sponsor{color:var(--text,#fff);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
       '.ad-frame{position:relative;background:#000;border-radius:14px;overflow:hidden;aspect-ratio:16/9}' +
       '.ad-frame video{width:100%;height:100%;object-fit:contain;display:block}' +
-      '.ad-cta{display:inline-block;background:var(--accent,#c9a24d);color:var(--on-accent,#0a0a0b);font-weight:700;font-size:.85rem;padding:.45rem .9rem;border-radius:999px;text-decoration:none;white-space:nowrap}' +
+      '.ad-cta{display:inline-block;background:var(--orange,#f19e5f);color:var(--navy,#00001e);font-weight:700;font-size:.85rem;padding:.45rem .9rem;border-radius:999px;text-decoration:none;white-space:nowrap}' +
       '.ad-foot{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.6rem .2rem 0}' +
-      '.ad-preroll{position:fixed;inset:0;z-index:100;background:rgba(4,4,10,.94);display:flex;align-items:center;justify-content:center;padding:16px}' +
+      '.ad-preroll{color:#fff;position:fixed;inset:0;z-index:100;background:rgba(0,0,30,.94);display:flex;align-items:center;justify-content:center;padding:16px}' +
       '.ad-preroll-box{width:100%;max-width:900px}' +
       '.ad-preroll-head{display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:.7rem;flex-wrap:wrap}' +
-      '.ad-note{color:var(--muted,#9a9fbd);font-size:.85rem}' +
+      '.ad-note{color:rgba(255,255,255,.7);font-size:.85rem}' +
+      '.ad-preroll .ad-sponsor{color:#fff}' +
       '.ad-bar{display:flex;justify-content:flex-end;align-items:center;gap:.7rem;margin-top:.8rem}' +
       '.ad-skip{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:.55rem 1.1rem;font:inherit;font-weight:700;cursor:pointer;min-width:120px}' +
       '.ad-skip:disabled{opacity:.6;cursor:default}' +
