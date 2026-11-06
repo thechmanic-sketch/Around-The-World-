@@ -96,6 +96,17 @@
     .tool.leave{margin-left:.3rem;min-width:64px}
     .room-top .hide-sm{display:none}
   }
+  /* phones: icon-only toolbar so every control fits on one row */
+  @media (max-width:600px){
+    .toolbar{gap:0;padding:.45rem .25rem;justify-content:space-between}
+    .tool{min-width:0;flex:1;padding:.55rem 0}
+    .tool span:not(.count){position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+    .tool .count{right:calc(50% - 20px)}
+    .tool.leave{margin-left:.25rem;flex:1.2;border-radius:10px}
+    .tool.hide-sm{display:none}
+    .room-top{padding:.5rem .75rem}
+    .ptimer{min-width:130px}.ptimer .pt-time{font-size:1.7rem}
+  }
 </style>
 </head>
 <body>
