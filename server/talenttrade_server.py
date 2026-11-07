@@ -20,7 +20,8 @@ All settings are environment variables (see server/README.md):
     TT_PORT=8090  TT_HOST=127.0.0.1  TT_PUBLIC_URL=http://localhost:8090
     TT_DB=server/data/talenttrade.db  TT_REQUIRE_LOGIN_TO_HOST=0
     TT_SMTP_HOST / TT_SMTP_PORT / TT_SMTP_USER / TT_SMTP_PASS / TT_SMTP_FROM
-    TT_JITSI_APP_ID / TT_JITSI_APP_SECRET / TT_JITSI_SUB / TT_JITSI_AUD
+    TT_JITSI_APP_ID / TT_JITSI_APP_SECRET / TT_JITSI_SUB / TT_JITSI_AUD / TT_JITSI_DOMAIN
+    TT_TLS_CERT / TT_TLS_KEY (serve HTTPS directly)
 """
 import base64
 import hashlib
@@ -64,6 +65,9 @@ JITSI_APP_SECRET = os.environ.get("TT_JITSI_APP_SECRET", "")
 JITSI_SUB = os.environ.get("TT_JITSI_SUB", "*")
 JITSI_AUD = os.environ.get("TT_JITSI_AUD", "jitsi")
 JITSI_ON = bool(JITSI_APP_ID and JITSI_APP_SECRET)
+TLS_CERT = os.environ.get("TT_TLS_CERT", "")  # serve HTTPS directly (e.g. on a home network, without nginx)
+TLS_KEY = os.environ.get("TT_TLS_KEY", "")
+JITSI_DOMAIN = os.environ.get("TT_JITSI_DOMAIN", "")  # e.g. 192.168.1.50:8443 or meet.example.co.za; the website uses it for meetings
 
 ROLES = {"", "presenter", "organiser", "judge", "sponsor", "viewer"}
 EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$")
@@ -339,7 +343,7 @@ class Handler(SimpleHTTPRequestHandler):
     # --- endpoints
     def get_config(self, u):
         self.send_json(200, {"accounts": True, "requireLoginToHost": REQUIRE_LOGIN_TO_HOST,
-                             "emailConfirm": EMAIL_ON, "jitsiTokens": JITSI_ON})
+                             "emailConfirm": EMAIL_ON, "jitsiTokens": JITSI_ON, "jitsiDomain": JITSI_DOMAIN})
 
     def get_me(self, u):
         user = self.current_user()
@@ -448,11 +452,20 @@ class Handler(SimpleHTTPRequestHandler):
 
 def main():
     srv = ThreadingHTTPServer((HOST, PORT), Handler)
-    print("TalentTrade server running on http://%s:%d" % (HOST, PORT))
+    scheme = "http"
+    if TLS_CERT and TLS_KEY:
+        ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        ctx.minimum_version = ssl.TLSVersion.TLSv1_2
+        ctx.load_cert_chain(TLS_CERT, TLS_KEY)
+        # handshake happens in each request's own thread, so one slow visitor can't hold up others
+        srv.socket = ctx.wrap_socket(srv.socket, server_side=True, do_handshake_on_connect=False)
+        scheme = "https"
+    print("TalentTrade server running on %s://%s:%d" % (scheme, HOST, PORT))
     print("  site folder : %s" % SITE_DIR)
     print("  database    : %s" % DB_PATH)
     print("  email       : %s" % ("on (%s)" % SMTP_HOST if EMAIL_ON else "off - new accounts are confirmed straight away; reset links are printed here"))
     print("  meeting passes for Jitsi: %s" % ("on" if JITSI_ON else "off"))
+    print("  video server: %s" % (JITSI_DOMAIN or "the one set in meet.html (meet.jit.si)"))
     print("  login needed to start meetings: %s" % ("yes" if REQUIRE_LOGIN_TO_HOST else "no"), flush=True)
     try:
         srv.serve_forever()

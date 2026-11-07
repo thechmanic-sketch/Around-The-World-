@@ -442,8 +442,12 @@ $('name').addEventListener('keydown',function(e){if(e.key==='Enter')(cleanCode($
 })();
 </script>
 <script>
-/* Load the video library from whichever server DOMAIN points at. */
-(function(){var s=document.createElement('script');s.src='https://'+DOMAIN+'/external_api.js';s.async=true;document.body.appendChild(s)})();
+/* Load the video library. If this site is served by your own account server and it names
+   a video server (TT_JITSI_DOMAIN), use that; otherwise use DOMAIN above. */
+(function(){
+  function go(d){if(d)DOMAIN=d;var s=document.createElement('script');s.src='https://'+DOMAIN+'/external_api.js';s.async=true;document.body.appendChild(s)}
+  TTAuth.load().then(function(c){go(c&&c.jitsiDomain)},function(){go()});
+})();
 </script>
 </body>
 </html>

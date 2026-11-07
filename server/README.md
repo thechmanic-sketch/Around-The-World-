@@ -16,6 +16,32 @@ It only uses what comes with Python (3.8 or newer), so there's nothing to instal
 - Too many attempts at log in, sign up or password reset from one address are blocked for 10 minutes.
 - Requests from other websites are refused.
 
+## Quickest: set up everything on a Linux Mint laptop with one command
+
+`setup-mint.sh` does all of the following for you:
+
+- installs Docker
+- sets up your own **Jitsi video server**, so only TalentTrade account holders can start meetings and guests still join with the link
+- sets up this **account server** over HTTPS and starts it automatically whenever the laptop starts
+- links the two with a secret it generates
+
+From the project folder, as your normal user (not with sudo):
+
+```bash
+bash server/setup-mint.sh
+```
+
+It asks for your password to install software. The first run downloads a few hundred MB. When it finishes, it prints two addresses:
+
+1. `https://<laptop-ip>:8443` is the video server. Open it once on each device and accept the security warning.
+2. `https://<laptop-ip>:8090` is TalentTrade. Accept the warning again, then sign up and start a meeting.
+
+The warnings appear because the certificates are home-made. A real web address with Let's Encrypt removes them (step 6).
+
+Your settings and the meeting-pass secret are in `~/.config/talenttrade/server.env`, and accounts are in `~/.config/talenttrade/talenttrade.db`. You can run the script again safely: it keeps your secret, your accounts and any email settings you added.
+
+The sections below explain each part, if you'd rather set things up by hand.
+
 ## 1. Try it on your Mint laptop
 
 From the project folder (the one with `index.html`):
@@ -50,6 +76,8 @@ Settings are environment variables, put in front of the command as above, or in 
 | `TT_SESSION_DAYS` | `30` | How long people stay logged in. |
 | `TT_TRUST_PROXY` | `0` | Set to `1` when running behind nginx (step 6). |
 | `TT_COOKIE_SECURE` | on for `https://` | Only send the login cookie over HTTPS. |
+| `TT_TLS_CERT`, `TT_TLS_KEY` | (off) | Certificate and key files, so the server speaks HTTPS itself (no nginx needed). Phones and other computers only allow the camera on HTTPS pages. |
+| `TT_JITSI_DOMAIN` | (off) | Your Jitsi server's address, e.g. `192.168.1.50:8443`. The website then uses it for meetings automatically, with no need to edit `meet.html`. |
 | `TT_SMTP_HOST`, `TT_SMTP_PORT`, `TT_SMTP_USER`, `TT_SMTP_PASS`, `TT_SMTP_FROM` | (off) | Your email account for sending confirmation and reset emails (step 3). |
 | `TT_JITSI_APP_ID`, `TT_JITSI_APP_SECRET` | (off) | Meeting passes for your own Jitsi server (step 4). |
 | `TT_JITSI_SUB`, `TT_JITSI_AUD` | `*`, `jitsi` | Meeting-pass details; change only if Jitsi rejects the passes. |
