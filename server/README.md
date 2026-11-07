@@ -16,6 +16,41 @@ It only uses what comes with Python (3.8 or newer), so there's nothing to instal
 - Too many attempts at log in, sign up or password reset from one address are blocked for 10 minutes.
 - Requests from other websites are refused.
 
+## On the internet: set up a cloud server with one command
+
+This lets people anywhere sign up, log in and host meetings, on your own web address with real certificates, so visitors see no security warnings.
+
+**You need:**
+1. **A cloud server** running Ubuntu 22.04 or 24.04. For ~250-person calls: about 8 CPU cores, 16 GB memory and a 1 Gbps connection. Smaller is fine for testing. Locations near South Africa: AWS Cape Town, Azure South Africa North, Google Cloud Johannesburg.
+2. **A domain** (e.g. `talenttrade.co.za`) with two DNS **A records** pointing at the server's public IP:
+   - `talenttrade.co.za`: the website and accounts
+   - `meet.talenttrade.co.za`: the video server
+3. **Your cloud provider's firewall** (often called a "security group") letting in **22/tcp, 80/tcp, 443/tcp and 10000/udp**.
+
+**Then, on the server** (log in with SSH as the normal sudo user, e.g. `ubuntu`):
+
+```bash
+git clone https://github.com/thechmanic-sketch/Around-The-World-.git talenttrade
+cd talenttrade
+git checkout ccr-1c745246-kv3eni          # until this is merged into main
+# optional but recommended: email for sign-up confirmations and password resets
+export TT_SMTP_HOST=smtp.gmail.com TT_SMTP_PORT=587 TT_SMTP_USER=you@gmail.com TT_SMTP_PASS='app-password' TT_SMTP_FROM='TalentTrade <you@gmail.com>'
+bash server/setup-cloud.sh talenttrade.co.za meet.talenttrade.co.za you@example.com
+```
+
+**What it does:**
+- checks both names already point at this server
+- installs Docker, nginx and Let's Encrypt
+- sets the server's firewall to allow only SSH, web and video
+- sets up Jitsi, reachable only through nginx, and locked so only account holders start meetings
+- sets up the account server, reachable only through nginx, as a service
+- gets free HTTPS certificates that renew automatically
+- checks both addresses from the internet side
+
+**Afterwards:** open `https://talenttrade.co.za`, sign up, and start a meeting. To update the site later, run `git pull && sudo systemctl restart talenttrade` in the project folder.
+
+You can run it again safely: it keeps the secret, accounts, certificates and email settings.
+
 ## Quickest: set up everything on a Linux Mint laptop with one command
 
 `setup-mint.sh` does all of the following for you:
